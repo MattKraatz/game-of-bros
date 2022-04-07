@@ -6,7 +6,7 @@ import "./BroManager.sol";
 
 struct Bro {
     uint256 dna;
-    uint8 dickSize;
+    uint8 level;
     uint32 fatherId;
 }
 
