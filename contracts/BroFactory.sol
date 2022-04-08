@@ -1,42 +1,40 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.4;
 
+import "hardhat/console.sol";
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./BroManager.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-struct Bro {
-    uint256 dna;
-    uint8 level;
-    uint32 fatherId;
-}
+contract BroFactory is ERC721, Ownable {
+    using Counters for Counters.Counter;
 
-contract BroFactory is BroManager {
-    Bro[] public bros;
-    mapping(uint32 => address) public broToOwner;
-    mapping(address => uint256) ownerBroCount;
+    Counters.Counter private _tokenIdCounter;
 
-    event MintBro(address indexed from, uint32 indexed id);
+    constructor() ERC721("Brosky", "BRO") {}
 
-    constructor() {}
+    function _baseURI() internal pure override returns (string memory) {
+        return "https://s3.eu-west-2.amazonaws.com/nftdata.timefrogs.com/meta/"; // borrowed from Time Frogs
+    }
+
+    function safeMint(address to) public onlyOwner {
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        _safeMint(to, tokenId);
+    }
+
+    uint256 mintPrice = 0.001 ether;
+
+    function updateMintPrice(uint256 _price) external onlyOwner {
+        console.log("Changing mint price from '%s' to '%s'", mintPrice, _price);
+        mintPrice = _price;
+    }
 
     function mintBro() public payable {
         require(msg.value == mintPrice);
-        bros.push(Bro(pseudoRandom(), uint8(pseudoRandom() % 5), 0));
-        uint32 id = uint32(bros.length);
-        broToOwner[id] = msg.sender;
-        ownerBroCount[msg.sender]++;
-        emit MintBro(msg.sender, id);
-    }
-
-    function getBrosByOwner(address _owner) public view returns (Bro[] memory) {
-        Bro[] memory result = new Bro[](ownerBroCount[_owner]);
-        uint32 counter = 0;
-        for (uint32 i = 0; i < bros.length; i++) {
-            if (broToOwner[i] == _owner) {
-                result[counter] = bros[i];
-                counter++;
-            }
-        }
-        return result;
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        _safeMint(msg.sender, tokenId);
     }
 }
