@@ -1,10 +1,13 @@
 import React from 'react';
+import Header from './components/Header/Header';
 
 function App() {
   return (
-    <div>
-      <p>Game of Bros</p>
-    </div>
+    <>
+      <Header />
+      <p>Hello World</p>
+      <div>Future Footer</div>
+    </>
   );
 }
 
